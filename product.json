@@ -84,6 +84,23 @@
 				},
 				"publisherDisplayName": "Microsoft"
 			}
+		},
+		{
+			"name": "ms-ceintl.vscode-language-pack-zh-hans",
+			"version": "1.128.2026070703",
+			"sha256": "e2ca51b4a45662499e07eb4d167e4f4975678028e758c8a2e1dd0fe7636e0878",
+			"repo": "https://github.com/microsoft/vscode-loc",
+			"vsix": "resources/builtin-extensions/ms-ceintl.vscode-language-pack-zh-hans-1.128.2026070703.vsix",
+			"metadata": {
+				"id": "e4ee7751-6514-4731-9cdb-7580ffa9e70b",
+				"publisherId": {
+					"publisherId": "0b0882c3-aee3-4d7c-b5f9-872f9be0a115",
+					"publisherName": "MS-CEINTL",
+					"displayName": "Microsoft",
+					"flags": "verified"
+				},
+				"publisherDisplayName": "Microsoft"
+			}
 		}
 	],
 	"defaultChatAgent": {

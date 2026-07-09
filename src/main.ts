@@ -428,6 +428,8 @@ function createDefaultArgvConfigSync(argvConfigPath: string): void {
 			'//',
 			'// NOTE: Changing this file requires a restart of VS Code.',
 			'{',
+			'	"locale": "zh-cn",',
+			'',
 			'	// Use software rendering instead of hardware accelerated rendering.',
 			'	// This can help in cases where you see rendering issues in VS Code.',
 			'	// "disable-hardware-acceleration": true',
