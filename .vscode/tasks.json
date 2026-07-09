@@ -1,9 +1,9 @@
-{
+﻿{
 	"version": "2.0.0",
 	"tasks": [
 		{
 			"label": "Install & Watch (Client)",
-			"detail": "Install dependencies, compile and watch VS Code core for fixing a bug or implementing a feature.",
+			"detail": "Install dependencies, compile and watch Kode core for fixing a bug or implementing a feature.",
 			"dependsOn": [
 				"Install Dependencies",
 				"Compile",
@@ -14,8 +14,8 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Run VS Code",
-			"detail": "Run VS Code with a user data directory inside the worktree.",
+			"label": "Run Kode",
+			"detail": "Run Kode with a user data directory inside the worktree.",
 			"type": "shell",
 			"command": "./scripts/code.sh",
 			"windows": {
@@ -30,7 +30,7 @@
 		},
 		{
 			"label": "Install & Watch (All)",
-			"detail": "Install dependencies and watch all of VS Code (core, extensions and copilot).",
+			"detail": "Install dependencies and watch all of Kode (core, extensions and copilot).",
 			"dependsOn": [
 				"Install Dependencies",
 				"Watch"
@@ -229,7 +229,7 @@
 			]
 		},
 		{
-			"label": "VS Code - Build",
+			"label": "Kode - Build",
 			"dependsOn": [
 				"Core - Transpile",
 				"Core - Typecheck",
@@ -291,7 +291,7 @@
 			"problemMatcher": "$esbuild"
 		},
 		{
-			"label": "Kill VS Code - Build",
+			"label": "Kill Kode - Build",
 			"dependsOn": [
 				"Kill Core - Transpile",
 				"Kill Core - Typecheck",
@@ -302,21 +302,21 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Restart VS Code - Build",
+			"label": "Restart Kode - Build",
 			"dependsOn": [
-				"Kill VS Code - Build",
-				"VS Code - Build"
+				"Kill Kode - Build",
+				"Kode - Build"
 			],
 			"group": "build",
 			"dependsOrder": "sequence",
 			"problemMatcher": []
 		},
 		{
-			"label": "Kill VS Code - Build, Npm, VS Code - Build",
+			"label": "Kill Kode - Build, Npm, Kode - Build",
 			"dependsOn": [
-				"Kill VS Code - Build",
+				"Kill Kode - Build",
 				"npm: install",
-				"VS Code - Build"
+				"Kode - Build"
 			],
 			"group": "build",
 			"dependsOrder": "sequence",
@@ -381,8 +381,8 @@
 			},
 			"args": [
 				"--agents",
-				"--user-data-dir=${userHome}/.vscode-oss-dev",
-				"--extensions-dir=${userHome}/.vscode-oss-dev/extensions"
+				"--user-data-dir=${userHome}/.kode-dev",
+				"--extensions-dir=${userHome}/.kode-dev/extensions"
 			],
 			"problemMatcher": []
 		},
@@ -402,7 +402,7 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Run and Compile Code - OSS",
+			"label": "Run and Compile Kode",
 			"dependsOn": [
 				"Transpile Client",
 				"Run Dev"
@@ -476,7 +476,7 @@
 			}
 		},
 		{
-			"label": "Run VS Code (Web)",
+			"label": "Run Kode (Web)",
 			"detail": "Run the Agents window as a web client.",
 			"type": "shell",
 			"command": "./scripts/code-server.sh",

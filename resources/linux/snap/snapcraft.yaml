@@ -1,10 +1,9 @@
 name: @@NAME@@
 version: '@@VERSION@@'
-summary: Code editing. Redefined.
+summary: AI development for Yudao developers.
 description: |
-  Visual Studio Code is a new choice of tool that combines the
-  simplicity of a code editor with what developers need for the core
-  edit-build-debug cycle.
+  Kode is an AI IDE based on Code - OSS, focused on helping Yudao users
+  understand, start, debug, and extend their projects faster.
 
 architectures:
   - build-on: amd64

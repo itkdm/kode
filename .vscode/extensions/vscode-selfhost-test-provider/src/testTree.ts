@@ -19,7 +19,7 @@ export const itemData = new WeakMap<vscode.TestItem, VSCodeTest>();
 export const clearFileDiagnostics = (uri: vscode.Uri) => diagnosticCollection.delete(uri);
 
 /**
- * Tries to guess which workspace folder VS Code is in.
+ * Tries to guess which workspace folder Kode is in.
  */
 export const guessWorkspaceFolder = async () => {
 	if (!vscode.workspace.workspaceFolders) {
@@ -43,7 +43,7 @@ export async function isVsCodeWorkspaceFolder(folder: vscode.WorkspaceFolder): P
 	try {
 		const buffer = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(folder.uri, 'package.json'));
 		const pkg = JSON.parse(textDecoder.decode(buffer));
-		return pkg.name === 'code-oss-dev';
+		return pkg.name === 'kode-dev';
 	} catch {
 		return false;
 	}
