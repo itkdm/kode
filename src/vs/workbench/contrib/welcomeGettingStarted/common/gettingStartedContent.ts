@@ -227,33 +227,26 @@ const Button = (title: string, href: string) => `[${title}](${href})`;
 export const walkthroughs: GettingStartedWalkthroughContent = [
 	{
 		id: 'Setup',
-		// allow-any-unicode-next-line
-		title: localize('kode.gettingStarted.yudaoStart.title', "启动芋道项目"),
-		// allow-any-unicode-next-line
-		description: localize('kode.gettingStarted.yudaoStart.description', "选择项目目录，检查开发环境，准备启动芋道源码"),
+		title: localize('kode.gettingStarted.yudaoStart.title', "Start Yudao Project"),
+		description: localize('kode.gettingStarted.yudaoStart.description', "Choose a project folder, check your development environment, and prepare to start Yudao."),
 		isFeatured: true,
 		icon: Codicon.rocket,
 		when: '!isWeb',
-		// allow-any-unicode-next-line
-		walkthroughPageTitle: localize('kode.gettingStarted.yudaoStart.walkthroughPageTitle', '启动芋道项目'),
+		walkthroughPageTitle: localize('kode.gettingStarted.yudaoStart.walkthroughPageTitle', 'Start Yudao Project'),
 		next: 'Beginner',
 		content: {
 			type: 'steps',
 			steps: [
 				{
 					id: 'openYudaoProject',
-					// allow-any-unicode-next-line
-					title: localize('kode.gettingStarted.yudaoStart.openProject.title', "打开芋道项目目录"),
-					// allow-any-unicode-next-line
-					description: localize('kode.gettingStarted.yudaoStart.openProject.description.interpolated', "打开本地的 ruoyi-vue-pro 或 yudao-cloud 项目目录，后续 Kode 会围绕这个目录提供启动、排错和二开辅助。\n{0}", Button(localize('kode.gettingStarted.yudaoStart.openFolder', "打开文件夹"), 'command:workbench.action.files.openFolder')),
+					title: localize('kode.gettingStarted.yudaoStart.openProject.title', "Open a Yudao project folder"),
+					description: localize('kode.gettingStarted.yudaoStart.openProject.description.interpolated', "Open your local ruoyi-vue-pro or yudao-cloud project folder. Kode will use this folder to help with startup, troubleshooting, and secondary development.\n{0}", Button(localize('kode.gettingStarted.yudaoStart.openFolder', "Open Folder"), 'command:workbench.action.files.openFolder')),
 					media: { type: 'svg', altText: 'Open a Yudao project folder', path: 'openFolder.svg' },
 				},
 				{
 					id: 'prepareYudaoRuntime',
-					// allow-any-unicode-next-line
-					title: localize('kode.gettingStarted.yudaoStart.runtime.title', "准备本地开发环境"),
-					// allow-any-unicode-next-line
-					description: localize('kode.gettingStarted.yudaoStart.runtime.description', "确认 Java、Maven、Node、pnpm、MySQL、Redis、Nacos 等依赖已经安装并可用。环境检查向导会在后续版本接入。"),
+					title: localize('kode.gettingStarted.yudaoStart.runtime.title', "Prepare the local development environment"),
+					description: localize('kode.gettingStarted.yudaoStart.runtime.description', "Make sure Java, Maven, Node.js, pnpm, MySQL, Redis, Nacos, and other dependencies are installed and available. The environment check wizard will be added in a later version."),
 					media: { type: 'svg', altText: 'Prepare local development environment', path: 'terminal.svg' },
 				}
 			]
@@ -455,22 +448,17 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 	{
 		id: 'Beginner',
 		isFeatured: true,
-		// allow-any-unicode-next-line
-		title: localize('kode.gettingStarted.yudaoDocs.title', "查看芋道文档"),
+		title: localize('kode.gettingStarted.yudaoDocs.title', "View Yudao Documentation"),
 		icon: Codicon.book,
-		// allow-any-unicode-next-line
-		description: localize('kode.gettingStarted.yudaoDocs.description', "打开芋道源码文档，快速了解启动、配置和二开规范"),
-		// allow-any-unicode-next-line
-		walkthroughPageTitle: localize('kode.gettingStarted.yudaoDocs.walkthroughPageTitle', '查看芋道文档'),
+		description: localize('kode.gettingStarted.yudaoDocs.description', "Open the Yudao documentation to learn about startup, configuration, and secondary development conventions."),
+		walkthroughPageTitle: localize('kode.gettingStarted.yudaoDocs.walkthroughPageTitle', 'View Yudao Documentation'),
 		content: {
 			type: 'steps',
 			steps: [
 				{
 					id: 'openYudaoDocs',
-					// allow-any-unicode-next-line
-					title: localize('kode.gettingStarted.yudaoDocs.official.title', "打开官方文档"),
-					// allow-any-unicode-next-line
-					description: localize('kode.gettingStarted.yudaoDocs.official.description.interpolated', "查看芋道源码的启动教程、环境配置、模块说明和常见问题。\n{0}", Button(localize('kode.gettingStarted.yudaoDocs.openDocs', "打开芋道文档"), 'https://doc.iocoder.cn/')),
+					title: localize('kode.gettingStarted.yudaoDocs.official.title', "Open the official documentation"),
+					description: localize('kode.gettingStarted.yudaoDocs.official.description.interpolated', "View Yudao startup guides, environment configuration, module documentation, and FAQs.\n{0}", Button(localize('kode.gettingStarted.yudaoDocs.openDocs', "Open Yudao Docs"), 'https://doc.iocoder.cn/')),
 					media: { type: 'svg', altText: 'Yudao documentation', path: 'learn.svg' },
 				},
 			]

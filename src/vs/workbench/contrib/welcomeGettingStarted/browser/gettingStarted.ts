@@ -925,8 +925,7 @@ export class GettingStartedPage extends EditorPane {
 
 		const header = $('.header', {},
 			$('h1.product-name.caption', {}, this.productService.nameLong),
-			// allow-any-unicode-next-line
-			$('p.subtitle.description', {}, localize({ key: 'kode.gettingStarted.subtitle', comment: ['Shown as subtitle on the Kode Welcome page.'] }, "专为芋道源码二次开发而生，探索新一代开发模式！"))
+			$('p.subtitle.description', {}, localize({ key: 'kode.gettingStarted.subtitle', comment: ['Shown as subtitle on the Kode Welcome page.'] }, "Built for Yudao secondary development, exploring the next generation of coding."))
 		);
 
 		const leftColumn = $('.categories-column.categories-column-left', {},);
@@ -1239,8 +1238,7 @@ export class GettingStartedPage extends EditorPane {
 
 		const gettingStartedList = this.gettingStartedList.value = new GettingStartedIndexList(
 			{
-				// allow-any-unicode-next-line
-				title: localize('kode.welcomePage.yudaoEntrances', "芋道入口"),
+				title: localize('kode.welcomePage.yudaoEntrances', "Yudao"),
 				klass: 'getting-started',
 				limit: 5,
 				footer: $('span.button-link.see-all-walkthroughs', { 'x-dispatch': 'seeAllWalkthroughs', 'tabindex': 0 }, localize('showAll', "More...")),
