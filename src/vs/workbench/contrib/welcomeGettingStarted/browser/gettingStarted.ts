@@ -78,6 +78,7 @@ import { ScrollbarVisibility } from '../../../../base/common/scrollable.js';
 
 const SLIDE_TRANSITION_TIME_MS = 250;
 const configurationKey = 'workbench.startupEditor';
+const KODE_WELCOME_WALKTHROUGH_IDS = new Set(['Setup', 'Beginner']);
 
 export const allWalkthroughsHiddenContext = new RawContextKey<boolean>('allWalkthroughsHidden', false);
 export const inWelcomeContext = new RawContextKey<boolean>('inWelcome', false);
@@ -1213,13 +1214,7 @@ export class GettingStartedPage extends EditorPane {
 					this.iconWidgetFor(category),
 					titleContent,
 					renderNewBadge ? newBadge : $('.no-badge'),
-					$('a.codicon.codicon-close.hide-category-button', {
-						'tabindex': 0,
-						'x-dispatch': 'hideCategory:' + category.id,
-						'title': localize('close', "Hide"),
-						'role': 'button',
-						'aria-label': localize('closeAriaLabel', "Hide"),
-					}),
+					$('.no-badge'),
 				),
 				descriptionContent,
 				$('.category-progress', { 'x-data-category-id': category.id, },
@@ -1237,7 +1232,6 @@ export class GettingStartedPage extends EditorPane {
 			if (e.newItems) { rank += 2; }
 			if (e.recencyBonus) { rank += 4 * e.recencyBonus; }
 
-			if (this.getHiddenCategories().has(e.id)) { rank = null; }
 			return rank;
 		};
 
@@ -1246,7 +1240,6 @@ export class GettingStartedPage extends EditorPane {
 				title: localize('kode.welcomePage.yudaoEntrances', "Yudao"),
 				klass: 'getting-started',
 				limit: 5,
-				footer: $('span.button-link.see-all-walkthroughs', { 'x-dispatch': 'seeAllWalkthroughs', 'tabindex': 0 }, localize('showAll', "More...")),
 				renderElement: renderGetttingStaredWalkthrough,
 				rankElement: rankWalkthrough,
 				contextService: this.contextService,
@@ -1254,17 +1247,22 @@ export class GettingStartedPage extends EditorPane {
 
 		gettingStartedList.onDidChange(() => {
 			const hidden = this.getHiddenCategories();
-			const someWalkthroughsHidden = hidden.size || gettingStartedList.itemCount < this.gettingStartedCategories.filter(c => this.contextService.contextMatchesRules(c.when)).length;
+			const kodeWalkthroughs = this.getKodeWelcomeWalkthroughs();
+			const someWalkthroughsHidden = [...hidden].some(id => KODE_WELCOME_WALKTHROUGH_IDS.has(id)) || gettingStartedList.itemCount < kodeWalkthroughs.filter(c => this.contextService.contextMatchesRules(c.when)).length;
 			this.container.classList.toggle('someWalkthroughsHidden', !!someWalkthroughsHidden);
 			this.registerDispatchListeners();
 			allWalkthroughsHiddenContext.bindTo(this.contextService).set(gettingStartedList.itemCount === 0);
 			this.updateCategoryProgress();
 		});
 
-		gettingStartedList.setEntries(this.gettingStartedCategories);
+		gettingStartedList.setEntries(this.getKodeWelcomeWalkthroughs());
 		allWalkthroughsHiddenContext.bindTo(this.contextService).set(gettingStartedList.itemCount === 0);
 
 		return gettingStartedList;
+	}
+
+	private getKodeWelcomeWalkthroughs(): IResolvedWalkthrough[] {
+		return this.gettingStartedCategories.filter(category => KODE_WELCOME_WALKTHROUGH_IDS.has(category.id));
 	}
 
 	layout(size: Dimension) {
