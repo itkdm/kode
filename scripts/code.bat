@@ -5,6 +5,11 @@ title Kode Dev
 
 pushd %~dp0\..
 
+node --experimental-strip-types scripts/kode/applyProductOverrides.ts || (
+	echo Failed to apply Kode product overrides. 1>&2
+	exit /b 1
+)
+
 :: Get electron, compile, built-in extensions
 if "%VSCODE_SKIP_PRELAUNCH%"=="" (
 	node build/lib/preLaunch.ts || (

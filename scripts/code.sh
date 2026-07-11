@@ -16,6 +16,8 @@ fi
 function code() {
 	cd "$ROOT"
 
+	node --experimental-strip-types scripts/kode/applyProductOverrides.ts
+
 	if [[ "$OSTYPE" == "darwin"* ]]; then
 		NAME=`node -p "require('./product.json').nameLong"`
 		EXE_NAME=`node -p "require('./product.json').nameShort"`
