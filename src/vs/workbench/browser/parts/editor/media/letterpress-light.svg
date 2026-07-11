@@ -1,7 +1,3 @@
-<svg width="260" height="260" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" fill="none">
-<g opacity="0.16" stroke="#0BCF6A" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
-<path d="M56 92V168L130 130L56 92Z"/>
-<path d="M204 92V168L130 130L204 92Z"/>
-<path d="M88 184L172 76"/>
-</g>
+<svg width="260" height="260" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+	<image href="./letterpress.png" width="260" height="260" opacity="0.16" />
 </svg>
