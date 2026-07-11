@@ -20,6 +20,8 @@ export interface ILocalGitService {
 	readonly _serviceBrand: undefined;
 
 	clone(operationId: string, cloneUrl: string, targetPath: string, ref?: string): Promise<void>;
+	// Kode uses this before clone to populate remote branch pickers.
+	listRemoteBranches(operationId: string, remoteUrl: string): Promise<string[]>;
 	pull(operationId: string, repoPath: string, options?: IGitPullOptions): Promise<boolean>;
 	checkout(operationId: string, repoPath: string, treeish: string, detached?: boolean): Promise<void>;
 	revParse(repoPath: string, ref: string): Promise<string>;

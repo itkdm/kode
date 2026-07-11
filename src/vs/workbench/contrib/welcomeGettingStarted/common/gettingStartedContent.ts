@@ -227,8 +227,8 @@ const Button = (title: string, href: string) => `[${title}](${href})`;
 export const walkthroughs: GettingStartedWalkthroughContent = [
 	{
 		id: 'Setup',
-		title: localize('kode.gettingStarted.yudaoStart.title', "Start Yudao Project"),
-		description: localize('kode.gettingStarted.yudaoStart.description', "Choose a project folder, check your development environment, and prepare to start Yudao."),
+		title: localize('kode.gettingStarted.yudaoStart.title', "Create Yudao Project"),
+		description: localize('kode.gettingStarted.yudaoStart.description', "Choose backend and frontend stacks, clone the source, and open a ready workspace."),
 		isFeatured: true,
 		icon: Codicon.rocket,
 		when: '!isWeb',

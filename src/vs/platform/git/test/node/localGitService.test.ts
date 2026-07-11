@@ -62,6 +62,26 @@ suite('LocalGitService', () => {
 		assert.strictEqual(expectations.length, 0);
 	});
 
+	test('listRemoteBranches parses remote head refs', async () => {
+		const expectations: IExecFileExpectation[] = [
+			{
+				args: ['ls-remote', '--heads', '--', 'https://example.com/repo.git'],
+				stdout: [
+					'aaaa\trefs/heads/master',
+					'bbbb\trefs/heads/develop',
+					'cccc\trefs/heads/feature/iot',
+					'',
+				].join('\n')
+			},
+		];
+		const service = new LocalGitService(new NullLogService(), createExecFile(expectations));
+
+		const branches = await service.listRemoteBranches('test-op', 'https://example.com/repo.git');
+
+		assert.deepStrictEqual(branches, ['master', 'develop', 'feature/iot']);
+		assert.strictEqual(expectations.length, 0);
+	});
+
 	test('pull recovers from diverged history by resetting to upstream', async () => {
 		const expectations: IExecFileExpectation[] = [
 			{ args: ['rev-parse', 'HEAD'], stdout: 'aaaa\n' },

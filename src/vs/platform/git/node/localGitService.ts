@@ -48,6 +48,17 @@ export class LocalGitService implements ILocalGitService {
 		await this._exec(operationId, args);
 	}
 
+	async listRemoteBranches(operationId: string, remoteUrl: string): Promise<string[]> {
+		// Only expose refs/heads/* so tags and other refs never enter branch pickers.
+		const output = await this._exec(operationId, ['ls-remote', '--heads', '--', remoteUrl]);
+		const branches = output
+			.split(/\r?\n/)
+			.map(line => line.match(/refs\/heads\/(.+)$/)?.[1])
+			.filter((branch): branch is string => !!branch);
+
+		return [...new Set(branches)];
+	}
+
 	async pull(operationId: string, repoPath: string, options?: IGitPullOptions): Promise<boolean> {
 		const before = (await this._exec(operationId, ['rev-parse', 'HEAD'], repoPath)).trim();
 

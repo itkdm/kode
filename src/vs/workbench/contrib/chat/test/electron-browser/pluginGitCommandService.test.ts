@@ -17,6 +17,7 @@ suite('NativePluginGitCommandService', () => {
 		return {
 			_serviceBrand: undefined,
 			clone: async () => { },
+			listRemoteBranches: async () => [],
 			pull: async () => false,
 			checkout: async () => { },
 			revParse: async () => '',

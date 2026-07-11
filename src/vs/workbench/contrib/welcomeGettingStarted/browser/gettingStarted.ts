@@ -454,6 +454,11 @@ export class GettingStartedPage extends EditorPane {
 			}
 			case 'selectCategory': {
 				this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'selectCategory', argument, walkthroughId: this.currentWalkthrough?.id });
+				// Kode: route the Setup card to our project wizard instead of the default walkthrough content.
+				if (argument === 'Setup') {
+					this.commandService.executeCommand('kode.yudao.createProject');
+					break;
+				}
 				this.scrollToCategory(argument);
 				this.gettingStartedService.markWalkthroughOpened(argument);
 				break;

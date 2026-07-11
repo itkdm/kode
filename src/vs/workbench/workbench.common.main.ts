@@ -384,6 +384,8 @@ import './contrib/surveys/browser/languageSurveys.contribution.js';
 
 // Welcome
 import './contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
+// Kode: register the Yudao project wizard editor, command, and styles.
+import './contrib/kodeYudaoProjectWizard/browser/yudaoProjectWizard.contribution.js';
 import './contrib/welcomeAgentSessions/browser/agentSessionsWelcome.contribution.js';
 import './contrib/welcomeWalkthrough/browser/walkThrough.contribution.js';
 import './contrib/welcomeViews/common/viewsWelcome.contribution.js';
