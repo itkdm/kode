@@ -4,15 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, append, clearNode, Dimension } from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
+import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
+import { ISelectOptionItem, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IFileDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { ILocalGitService } from '../../../../platform/git/common/localGitService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
@@ -44,6 +51,11 @@ interface IBranchCacheEntry {
 	readonly branches: string[];
 }
 
+interface IWizardSelect {
+	readonly selectBox: SelectBox;
+	values: string[];
+}
+
 type BranchCache = Record<string, IBranchCacheEntry>;
 
 // EditorPane that renders the wizard form, refreshes branches, clones repos, and opens the workspace.
@@ -52,6 +64,8 @@ export class YudaoProjectWizardEditor extends EditorPane {
 	static readonly ID = 'workbench.editor.kodeYudaoProjectWizard';
 
 	private container: HTMLElement | undefined;
+	private readonly renderDisposables = this._register(new DisposableStore());
+	private readonly moduleDisposables = this._register(new DisposableStore());
 	private running = false;
 	private refreshGeneration = 0;
 	// Runtime branch results; fall back to built-in preset branches when refresh fails.
@@ -69,28 +83,31 @@ export class YudaoProjectWizardEditor extends EditorPane {
 	};
 
 	private elements: {
-		projectName: HTMLInputElement;
-		sourceProvider: HTMLSelectElement;
-		parentPath: HTMLInputElement;
-		backend: HTMLSelectElement;
-		backendBranch: HTMLSelectElement;
-		frontend: HTMLSelectElement;
-		frontendBranch: HTMLSelectElement;
+		projectName: InputBox;
+		sourceProvider: IWizardSelect;
+		parentPath: InputBox;
+		projectPath: HTMLElement;
+		backend: IWizardSelect;
+		backendBranch: IWizardSelect;
+		frontend: IWizardSelect;
+		frontendBranch: IWizardSelect;
 		modules: HTMLElement;
-		createButton: HTMLButtonElement;
-		openButton: HTMLButtonElement;
+		createButton: Button;
 		error: HTMLElement;
 		log: HTMLElement;
+		logToggle: Button;
 		status: HTMLElement;
 		branchStatus: HTMLElement;
-		summary: HTMLElement;
+		feedback: HTMLElement;
 	} | undefined;
+	private logVisible = false;
 
 	constructor(
 		group: IEditorGroup,
 		@ITelemetryService telemetryService: ITelemetryService,
 		@IThemeService themeService: IThemeService,
 		@IStorageService private readonly storageService: IStorageService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IFileDialogService private readonly fileDialogService: IFileDialogService,
 		@IFileService private readonly fileService: IFileService,
 		@ILocalGitService private readonly localGitService: ILocalGitService,
@@ -122,17 +139,16 @@ export class YudaoProjectWizardEditor extends EditorPane {
 			return;
 		}
 
+		this.renderDisposables.clear();
+		this.moduleDisposables.clear();
 		clearNode(this.container);
 		const shell = append(this.container, $('.wizard-shell'));
 		const header = append(shell, $('.wizard-header'));
 		const headerText = append(header, $('div'));
 		append(headerText, $('h1', {}, localize('kodeYudaoWizard.title', "Create Yudao Project")));
 		append(headerText, $('p.subtitle', {}, localize('kodeYudaoWizard.subtitle', "Choose backend and frontend stacks, pick a parent folder, then Kode will clone the selected Yudao sources into a clean workspace.")));
-		const status = append(header, $('div.status-pill', {}, localize('kodeYudaoWizard.statusReady', "Ready")));
 
-		const grid = append(shell, $('.wizard-grid'));
-		const form = append(grid, $('div'));
-		const side = append(grid, $('div'));
+		const form = append(shell, $('.wizard-form'));
 
 		const projectSection = append(form, $('.section'));
 		append(projectSection, $('h2', {}, localize('kodeYudaoWizard.projectSection', "Project")));
@@ -146,8 +162,10 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		const pathSection = append(projectSection, $('label'));
 		pathSection.append(localize('kodeYudaoWizard.parentFolder', "Parent folder"));
 		const pathRow = append(pathSection, $('.path-row'));
-		const parentPath = append(pathRow, $('input', { readonly: 'true', value: this.state.parentUri?.fsPath ?? '' })) as HTMLInputElement;
-		const browseButton = append(pathRow, $('button.secondary', { type: 'button' }, localize('kodeYudaoWizard.browse', "Browse..."))) as HTMLButtonElement;
+		const parentPath = this.createBareInput(pathRow, localize('kodeYudaoWizard.parentFolder', "Parent folder"), this.state.parentUri?.fsPath ?? '');
+		parentPath.inputElement.readOnly = true;
+		const browseButton = this.createButton(pathRow, localize('kodeYudaoWizard.browse', "Browse..."), true);
+		const projectPath = append(projectSection, $('div.project-path-preview'));
 
 		const stackSection = append(form, $('.section'));
 		append(stackSection, $('h2', {}, localize('kodeYudaoWizard.stackSection', "Stacks")));
@@ -165,80 +183,118 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		const frontendBranch = this.createSelect(stackFields, localize('kodeYudaoWizard.frontendBranch', "Frontend branch"), [], this.state.frontendBranch);
 		const branchStatus = append(stackSection, $('div.branch-status'));
 
-		const moduleSection = append(form, $('.section'));
-		append(moduleSection, $('h2', {}, localize('kodeYudaoWizard.modulesSection', "Backend modules for Kode context")));
-		const modules = append(moduleSection, $('.module-list'));
+		const advancedSection = append(form, $('details.advanced-section'));
+		append(advancedSection, $('summary', {}, localize('kodeYudaoWizard.advancedOptions', "Advanced options")));
+		const advancedBody = append(advancedSection, $('.advanced-body'));
+		append(advancedBody, $('h2', {}, localize('kodeYudaoWizard.modulesSection', "Kode context modules")));
+		const modules = append(advancedBody, $('.module-list'));
 
-		const summary = append(side, $('.summary'));
-		append(summary, $('h2', {}, localize('kodeYudaoWizard.summary', "Summary")));
-		const summaryBody = append(summary, $('dl'));
-		const actions = append(side, $('.actions'));
-		const createButton = append(actions, $('button', { type: 'button' }, localize('kodeYudaoWizard.create', "Clone and Open"))) as HTMLButtonElement;
-		const openButton = append(actions, $('button.secondary', { type: 'button' }, localize('kodeYudaoWizard.openFolder', "Open Folder"))) as HTMLButtonElement;
-		const error = append(side, $('.error'));
-		const log = append(side, $('.log', {}, localize('kodeYudaoWizard.logEmpty', "Clone log will appear here.")));
+		const actions = append(form, $('.actions'));
+		const createButton = this.createButton(actions, localize('kodeYudaoWizard.create', "Clone and Open"));
+		const feedback = append(form, $('.feedback'));
+		const status = append(feedback, $('div.operation-status'));
+		const error = append(feedback, $('.error'));
+		const logToggle = this.createButton(feedback, localize('kodeYudaoWizard.showLog', "Show clone log"), true);
+		const log = append(feedback, $('.log'));
 
-		this.elements = { projectName, sourceProvider, parentPath, backend, backendBranch, frontend, frontendBranch, modules, createButton, openButton, error, log, status, branchStatus, summary: summaryBody };
+		this.elements = { projectName, sourceProvider, parentPath, projectPath, backend, backendBranch, frontend, frontendBranch, modules, createButton, error, log, logToggle, status, branchStatus, feedback };
 		this.resolveDefaultParentFolder();
 		this.refreshDynamicControls();
 		// Built-in branches keep the page usable while real remote branches refresh in the background.
 		this.refreshRemoteBranches();
 
-		projectName.addEventListener('input', () => {
-			this.state.projectName = projectName.value.trim();
-			this.refreshSummary();
-		});
-		sourceProvider.addEventListener('change', () => {
-			this.state.sourceProvider = sourceProvider.value as YudaoSourceProvider;
+		this.renderDisposables.add(projectName.onDidChange(value => {
+			this.state.projectName = value.trim();
+			this.refreshDerivedState();
+		}));
+		this.renderDisposables.add(sourceProvider.selectBox.onDidSelect(({ index }) => {
+			const selected = sourceProvider.values[index] as YudaoSourceProvider | undefined;
+			if (!selected) {
+				return;
+			}
+			this.state.sourceProvider = selected;
 			this.ensureSelectedBranchesExist();
 			this.refreshDynamicControls();
 			this.refreshRemoteBranches();
-		});
-		backend.addEventListener('change', () => {
-			this.state.backend = backend.value as YudaoBackendKind;
+		}));
+		this.renderDisposables.add(backend.selectBox.onDidSelect(({ index }) => {
+			const selected = backend.values[index] as YudaoBackendKind | undefined;
+			if (!selected) {
+				return;
+			}
+			this.state.backend = selected;
 			this.state.backendBranch = this.getBackendBranches()[0] ?? '';
 			this.refreshDynamicControls();
 			this.refreshRemoteBranches();
-		});
-		backendBranch.addEventListener('change', () => {
-			this.state.backendBranch = backendBranch.value;
-			this.refreshSummary();
-		});
-		frontend.addEventListener('change', () => {
-			this.state.frontend = frontend.value as YudaoFrontendKind;
+		}));
+		this.renderDisposables.add(backendBranch.selectBox.onDidSelect(({ index }) => {
+			this.state.backendBranch = backendBranch.values[index] ?? '';
+			this.refreshDerivedState();
+		}));
+		this.renderDisposables.add(frontend.selectBox.onDidSelect(({ index }) => {
+			const selected = frontend.values[index] as YudaoFrontendKind | undefined;
+			if (!selected) {
+				return;
+			}
+			this.state.frontend = selected;
 			this.state.frontendBranch = this.getFrontendBranches()[0] ?? '';
 			this.refreshDynamicControls();
 			this.refreshRemoteBranches();
-		});
-		frontendBranch.addEventListener('change', () => {
-			this.state.frontendBranch = frontendBranch.value;
-			this.refreshSummary();
-		});
-		browseButton.addEventListener('click', () => this.chooseParentFolder());
-		createButton.addEventListener('click', () => this.createProject());
-		openButton.addEventListener('click', () => this.openProjectRoot());
+		}));
+		this.renderDisposables.add(frontendBranch.selectBox.onDidSelect(({ index }) => {
+			this.state.frontendBranch = frontendBranch.values[index] ?? '';
+			this.refreshDerivedState();
+		}));
+		this.renderDisposables.add(browseButton.onDidClick(() => this.chooseParentFolder()));
+		this.renderDisposables.add(createButton.onDidClick(() => this.createProject()));
+		this.renderDisposables.add(logToggle.onDidClick(() => {
+			this.logVisible = !this.logVisible;
+			this.updateFeedbackVisibility();
+		}));
 	}
 
-	private createInput(parent: HTMLElement, labelText: string, value: string): HTMLInputElement {
+	private createInput(parent: HTMLElement, labelText: string, value: string): InputBox {
 		const label = append(parent, $('label'));
 		label.append(labelText);
-		return append(label, $('input', { value })) as HTMLInputElement;
+		return this.createBareInput(label, labelText, value);
 	}
 
-	private createSelect(parent: HTMLElement, labelText: string, options: readonly (readonly [string, string])[], value: string): HTMLSelectElement {
+	private createBareInput(parent: HTMLElement, labelText: string, value: string): InputBox {
+		const container = append(parent, $('.input-control'));
+		const input = this.renderDisposables.add(new InputBox(container, this.contextViewService, {
+			ariaLabel: labelText,
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		input.value = value;
+		return input;
+	}
+
+	private createButton(parent: HTMLElement, labelText: string, secondary = false): Button {
+		const button = this.renderDisposables.add(new Button(parent, { ...defaultButtonStyles, secondary }));
+		button.label = labelText;
+		return button;
+	}
+
+	private createSelect(parent: HTMLElement, labelText: string, options: readonly (readonly [string, string])[], value: string): IWizardSelect {
 		const label = append(parent, $('label'));
 		label.append(labelText);
-		const select = append(label, $('select')) as HTMLSelectElement;
+		const container = append(label, $('.select-control'));
+		const selectBox = this.renderDisposables.add(new SelectBox([], 0, this.contextViewService, defaultSelectBoxStyles, {
+			ariaLabel: labelText,
+			optionsAsChildren: true,
+			useCustomDrawn: true,
+		}));
+		selectBox.render(container);
+		const select: IWizardSelect = { selectBox, values: [] };
 		this.setSelectOptions(select, options, value);
 		return select;
 	}
 
-	private setSelectOptions(select: HTMLSelectElement, options: readonly (readonly [string, string])[], value: string): void {
-		clearNode(select);
-		for (const [optionValue, label] of options) {
-			append(select, $('option', { value: optionValue }, label));
-		}
-		select.value = value;
+	private setSelectOptions(select: IWizardSelect, options: readonly (readonly [string, string])[], value: string): void {
+		select.values = options.map(([optionValue]) => optionValue);
+		const selectedIndex = Math.max(0, select.values.indexOf(value));
+		const selectOptions: ISelectOptionItem[] = options.map(([, label]) => ({ text: label }));
+		select.selectBox.setOptions(selectOptions, selectedIndex);
 	}
 
 	private refreshDynamicControls(): void {
@@ -247,22 +303,24 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		}
 		// Branch pickers depend on selected stack and source provider, so rebuild them from state.
 		this.setSelectOptions(this.elements.backendBranch, this.getBackendBranches().map(branch => [branch, branch]), this.state.backendBranch);
-		this.elements.backendBranch.disabled = this.state.backend === 'none';
+		this.elements.backendBranch.selectBox.setEnabled(this.state.backend !== 'none');
 		this.setSelectOptions(this.elements.frontendBranch, this.getFrontendBranches().map(branch => [branch, branch]), this.state.frontendBranch);
-		this.elements.frontendBranch.disabled = this.state.frontend === 'none';
+		this.elements.frontendBranch.selectBox.setEnabled(this.state.frontend !== 'none');
+		this.moduleDisposables.clear();
 		clearNode(this.elements.modules);
 		this.ensureRequiredModulesSelected();
 		// Module checkboxes come from presets; required modules stay checked and disabled.
 		for (const module of yudaoModulePresets) {
 			const label = append(this.elements.modules, $('label.module-option'));
-			const checkbox = append(label, $('input', { type: 'checkbox' })) as HTMLInputElement;
+			const checkbox = this.moduleDisposables.add(new Checkbox(module.label, this.state.modules.has(module.id), { ...defaultCheckboxStyles, size: 15 }));
+			label.append(checkbox.domNode);
+			append(label, $('span.module-label', {}, module.label));
 			checkbox.checked = this.state.modules.has(module.id);
-			checkbox.disabled = module.required === true;
-			label.append(module.label);
 			if (module.required) {
+				checkbox.disable();
 				append(label, $('span.required-badge', {}, localize('kodeYudaoWizard.requiredModule', "Required")));
 			}
-			checkbox.addEventListener('change', () => {
+			this.moduleDisposables.add(checkbox.onChange(() => {
 				if (checkbox.checked) {
 					this.state.modules.add(module.id);
 				} else {
@@ -271,31 +329,41 @@ export class YudaoProjectWizardEditor extends EditorPane {
 					}
 				}
 				this.ensureRequiredModulesSelected();
-				this.refreshSummary();
-			});
+				this.refreshDerivedState();
+			}));
 		}
-		this.refreshSummary();
+		this.refreshDerivedState();
 	}
 
-	private refreshSummary(): void {
+	private refreshDerivedState(): void {
 		if (!this.elements) {
 			return;
 		}
 		this.ensureRequiredModulesSelected();
-		clearNode(this.elements.summary);
-		const rows: [string, string][] = [
-			[localize('kodeYudaoWizard.summaryRoot', "Root"), this.getProjectRootUri()?.fsPath ?? localize('kodeYudaoWizard.notSelected', "Not selected")],
-			[localize('kodeYudaoWizard.summaryBackend', "Backend"), this.state.backend === 'none' ? 'None' : `${yudaoBackendPresets[this.state.backend].label} / ${this.state.backendBranch}`],
-			[localize('kodeYudaoWizard.summaryFrontend', "Frontend"), this.state.frontend === 'none' ? 'None' : `${yudaoFrontendPresets[this.state.frontend].label} / ${this.state.frontendBranch}`],
-			[localize('kodeYudaoWizard.summarySource', "Source"), this.state.sourceProvider],
-			[localize('kodeYudaoWizard.summaryModules', "Modules"), [...this.state.modules].join(', ') || 'None'],
-		];
-		for (const [key, value] of rows) {
-			append(this.elements.summary, $('dt', {}, key));
-			append(this.elements.summary, $('dd', {}, value));
+		const projectRoot = this.getProjectRootUri();
+		this.elements.projectPath.textContent = projectRoot
+			? localize('kodeYudaoWizard.projectPathPreview', "Will create: {0}", projectRoot.fsPath)
+			: localize('kodeYudaoWizard.projectPathPending', "Choose a parent folder to set the project location.");
+		this.elements.createButton.enabled = !this.running;
+		this.updateFeedbackVisibility();
+	}
+
+	private updateFeedbackVisibility(): void {
+		if (!this.elements) {
+			return;
 		}
-		this.elements.createButton.disabled = this.running;
-		this.elements.openButton.disabled = !this.state.parentUri;
+
+		const hasStatus = this.elements.status.textContent !== '';
+		const hasError = this.elements.error.textContent !== '';
+		const hasLog = this.elements.log.textContent.trim() !== '';
+		this.elements.feedback.hidden = !hasStatus && !hasError && !hasLog;
+		this.elements.status.hidden = !hasStatus;
+		this.elements.error.hidden = !hasError;
+		this.elements.logToggle.element.hidden = !hasLog;
+		this.elements.log.hidden = !hasLog || !this.logVisible;
+		this.elements.logToggle.label = this.logVisible
+			? localize('kodeYudaoWizard.hideLog', "Hide clone log")
+			: localize('kodeYudaoWizard.showLog', "Show clone log");
 	}
 
 	private getBackendBranches(): string[] {
@@ -451,7 +519,7 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		this.storageService.store(LAST_PARENT_FOLDER_STORAGE_KEY, folder.toString(), StorageScope.APPLICATION, StorageTarget.USER);
 		if (this.elements) {
 			this.elements.parentPath.value = folder.fsPath;
-			this.refreshSummary();
+			this.refreshDerivedState();
 		}
 	}
 
@@ -494,22 +562,28 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		// Re-read the input before creating so state matches the latest DOM value.
 		this.state.projectName = this.elements.projectName.value.trim();
 		this.elements.error.textContent = '';
+		this.elements.status.textContent = '';
+		this.elements.log.textContent = '';
+		this.logVisible = false;
 		const validationError = this.validate();
 		if (validationError) {
 			this.elements.error.textContent = validationError;
+			this.updateFeedbackVisibility();
 			return;
 		}
 
 		const projectRoot = this.getProjectRootUri()!;
 		if (await this.fileService.exists(projectRoot)) {
 			this.elements.error.textContent = localize('kodeYudaoWizard.projectExists', "The project folder already exists. Choose a different project name.");
+			this.updateFeedbackVisibility();
 			return;
 		}
 
 		this.running = true;
-		this.elements.createButton.disabled = true;
+		this.logVisible = false;
+		this.elements.createButton.enabled = false;
 		this.elements.status.textContent = localize('kodeYudaoWizard.statusCloning', "Cloning...");
-		this.elements.log.textContent = '';
+		this.updateFeedbackVisibility();
 
 		try {
 			await this.fileService.createFolder(projectRoot);
@@ -523,9 +597,10 @@ export class YudaoProjectWizardEditor extends EditorPane {
 			this.elements.error.textContent = message;
 			this.notificationService.error(message);
 			this.elements.status.textContent = localize('kodeYudaoWizard.statusFailed', "Failed");
+			this.logVisible = true;
 		} finally {
 			this.running = false;
-			this.refreshSummary();
+			this.refreshDerivedState();
 		}
 	}
 
@@ -583,22 +658,18 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		await this.fileService.writeFile(URI.joinPath(kodeDir, 'yudao-project.json'), VSBuffer.fromString(JSON.stringify(metadata, undefined, '\t')));
 	}
 
-	private async openProjectRoot(): Promise<void> {
-		const projectRoot = this.getProjectRootUri();
-		if (projectRoot) {
-			await this.hostService.openWindow([{ folderUri: projectRoot }], { forceReuseWindow: true });
-		}
-	}
-
 	private appendLog(message: string): void {
 		if (!this.elements) {
 			return;
 		}
 		this.elements.log.textContent += `${message}\n`;
 		this.elements.log.scrollTop = this.elements.log.scrollHeight;
+		this.updateFeedbackVisibility();
 	}
 
 	override clearInput(): void {
+		this.renderDisposables.clear();
+		this.moduleDisposables.clear();
 		if (this.container) {
 			clearNode(this.container);
 		}
