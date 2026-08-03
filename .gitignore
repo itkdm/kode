@@ -5,6 +5,7 @@ Thumbs.db
 node_modules/
 .tmp/
 .build/
+info.md
 /extensionsCG/
 .vscode/extensions/**/out/
 extensions/**/dist/
