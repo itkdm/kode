@@ -155,7 +155,7 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		const projectFields = append(projectSection, $('.field-grid'));
 		const projectName = this.createInput(projectFields, localize('kodeYudaoWizard.projectName', "Project name"), this.state.projectName);
 		const sourceProvider = this.createSelect(projectFields, localize('kodeYudaoWizard.sourceProvider', "Source provider"), [
-			['auto', 'Auto: Gitee first, GitHub fallback'],
+			['auto', localize('kodeYudaoWizard.sourceProvider.auto', "Auto: Gitee first, GitHub fallback")],
 			['gitee', 'Gitee'],
 			['github', 'GitHub'],
 		], this.state.sourceProvider);
@@ -171,13 +171,13 @@ export class YudaoProjectWizardEditor extends EditorPane {
 		append(stackSection, $('h2', {}, localize('kodeYudaoWizard.stackSection', "Stacks")));
 		const stackFields = append(stackSection, $('.field-grid'));
 		const backend = this.createSelect(stackFields, localize('kodeYudaoWizard.backend', "Backend"), [
-			['none', 'Do not create backend'],
+			['none', localize('kodeYudaoWizard.backend.none', "Do not create backend")],
 			['boot', yudaoBackendPresets.boot.label],
 			['cloud', yudaoBackendPresets.cloud.label],
 		], this.state.backend);
 		const backendBranch = this.createSelect(stackFields, localize('kodeYudaoWizard.backendBranch', "Backend branch"), [], this.state.backendBranch);
 		const frontend = this.createSelect(stackFields, localize('kodeYudaoWizard.frontend', "Frontend project"), [
-			['none', 'Do not create frontend'],
+			['none', localize('kodeYudaoWizard.frontend.none', "Do not create frontend")],
 			...yudaoFrontendPresetOrder.map(kind => [kind, `${yudaoFrontendPresets[kind].label} - ${yudaoFrontendPresets[kind].description}`] as const),
 		], this.state.frontend);
 		const frontendBranch = this.createSelect(stackFields, localize('kodeYudaoWizard.frontendBranch', "Frontend branch"), [], this.state.frontendBranch);
@@ -607,11 +607,11 @@ export class YudaoProjectWizardEditor extends EditorPane {
 	private async cloneSelectedProjects(projectRoot: URI): Promise<void> {
 		if (this.state.backend !== 'none') {
 			const preset = yudaoBackendPresets[this.state.backend];
-			await this.cloneWithProviderFallback(preset.mirrors, this.state.backendBranch, URI.joinPath(projectRoot, 'yudao-backend').fsPath, 'backend');
+			await this.cloneWithProviderFallback(preset.mirrors, this.state.backendBranch, URI.joinPath(projectRoot, 'yudao-backend').fsPath, localize('kodeYudaoWizard.backendLogLabel', "Backend"));
 		}
 		if (this.state.frontend !== 'none') {
 			const preset = yudaoFrontendPresets[this.state.frontend];
-			await this.cloneWithProviderFallback(preset.mirrors, this.state.frontendBranch, URI.joinPath(projectRoot, preset.workspaceFolder).fsPath, 'frontend');
+			await this.cloneWithProviderFallback(preset.mirrors, this.state.frontendBranch, URI.joinPath(projectRoot, preset.workspaceFolder).fsPath, localize('kodeYudaoWizard.frontendLogLabel', "Frontend"));
 		}
 	}
 
@@ -624,11 +624,11 @@ export class YudaoProjectWizardEditor extends EditorPane {
 				// Auto tries Gitee first and then GitHub; explicit source selection tries only that source.
 				this.appendLog(`git clone --branch ${branch} ${repo} ${targetPath}`);
 				await this.localGitService.clone(generateUuid(), repo, targetPath, branch);
-				this.appendLog(`${label}: cloned from ${provider}`);
+				this.appendLog(localize('kodeYudaoWizard.cloneLogCloned', "{0}: cloned from {1}", label, provider));
 				return;
 			} catch (error) {
 				lastError = error;
-				this.appendLog(`${label}: ${provider} failed`);
+				this.appendLog(localize('kodeYudaoWizard.cloneLogProviderFailed', "{0}: {1} failed", label, provider));
 			}
 		}
 		throw lastError instanceof Error ? lastError : new Error(localize('kodeYudaoWizard.cloneFailed', "Clone failed."));

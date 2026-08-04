@@ -26,7 +26,7 @@ interface ILanguagePack {
 		extensionIdentifier: IExtensionIdentifier;
 		version: string;
 	}[];
-	translations: { [id: string]: string };
+	translations: { [id: string]: string | string[] };
 }
 
 export class NativeLanguagePackService extends LanguagePackBaseService {
@@ -59,6 +59,10 @@ export class NativeLanguagePackService extends LanguagePackBaseService {
 		}
 
 		const translation = pack.translations[id];
+		if (Array.isArray(translation)) {
+			const lastTranslation = translation[translation.length - 1];
+			return lastTranslation ? URI.file(lastTranslation) : undefined;
+		}
 		return translation ? URI.file(translation) : undefined;
 	}
 
@@ -162,7 +166,7 @@ class LanguagePacksCache extends Disposable {
 					languagePack.extensions.push({ extensionIdentifier, version: extension.manifest.version });
 				}
 				for (const translation of localizationContribution.translations) {
-					languagePack.translations[translation.id] = join(extension.location.fsPath, translation.path);
+					addTranslationPath(languagePack.translations, translation.id, join(extension.location.fsPath, translation.path));
 				}
 			}
 		}
@@ -199,6 +203,19 @@ class LanguagePacksCache extends Disposable {
 				})
 				.then(() => result, error => this.logService.error(error));
 		});
+	}
+}
+
+function addTranslationPath(translations: { [id: string]: string | string[] }, id: string, path: string): void {
+	const existing = translations[id];
+	if (!existing) {
+		translations[id] = path;
+	} else if (Array.isArray(existing)) {
+		if (!existing.includes(path)) {
+			existing.push(path);
+		}
+	} else if (existing !== path) {
+		translations[id] = [existing, path];
 	}
 }
 

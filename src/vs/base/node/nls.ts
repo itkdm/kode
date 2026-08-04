@@ -5,6 +5,7 @@
 
 import { join } from '../common/path.js';
 import { promises } from 'fs';
+import { createHash } from 'crypto';
 import { mark } from '../common/performance.js';
 import { ILanguagePacks, INLSConfiguration } from '../../nls.js';
 import { Promises } from './pfs.js';
@@ -64,18 +65,18 @@ export async function resolveNLSConfiguration({ userLocale, osLocale, userDataPa
 		}
 
 		const languagePack = languagePacks[resolvedLanguage];
-		const mainLanguagePackPath = languagePack?.translations?.['vscode'];
+		const mainLanguagePackPaths = await withBundledKodeLanguagePack(asTranslationPaths(languagePack?.translations?.['vscode']), nlsMetadataPath, resolvedLanguage);
 		if (
 			!languagePack ||
 			typeof languagePack.hash !== 'string' ||
 			!languagePack.translations ||
-			typeof mainLanguagePackPath !== 'string' ||
-			!(await Promises.exists(mainLanguagePackPath))
+			!mainLanguagePackPaths.length ||
+			!(await allFilesExist(mainLanguagePackPaths))
 		) {
 			return defaultNLSConfiguration(userLocale, osLocale, nlsMetadataPath);
 		}
 
-		const languagePackId = `${languagePack.hash}.${resolvedLanguage}`;
+		const languagePackId = `${await getLanguagePackHash(languagePack.hash, mainLanguagePackPaths)}.${resolvedLanguage}`;
 		const globalLanguagePackCachePath = join(userDataPath, 'clp', languagePackId);
 		const commitLanguagePackCachePath = join(globalLanguagePackCachePath, commit);
 		const languagePackMessagesFile = join(commitLanguagePackCachePath, 'nls.messages.json');
@@ -124,7 +125,7 @@ export async function resolveNLSConfiguration({ userLocale, osLocale, userDataPa
 			= await Promise.all([
 				promises.readFile(join(nlsMetadataPath, 'nls.keys.json'), 'utf-8').then(content => JSON.parse(content)),
 				promises.readFile(join(nlsMetadataPath, 'nls.messages.json'), 'utf-8').then(content => JSON.parse(content)),
-				promises.readFile(mainLanguagePackPath, 'utf-8').then(content => JSON.parse(content)),
+				readLanguagePackData(mainLanguagePackPaths),
 			]);
 
 		const nlsResult: string[] = [];
@@ -147,7 +148,7 @@ export async function resolveNLSConfiguration({ userLocale, osLocale, userDataPa
 
 		await Promise.all([
 			promises.writeFile(languagePackMessagesFile, JSON.stringify(nlsResult), 'utf-8'),
-			promises.writeFile(translationsConfigFile, JSON.stringify(languagePack.translations), 'utf-8')
+			promises.writeFile(translationsConfigFile, JSON.stringify(toTranslationsConfig(languagePack.translations)), 'utf-8')
 		]);
 
 		mark('code/didGenerateNls');
@@ -158,6 +159,79 @@ export async function resolveNLSConfiguration({ userLocale, osLocale, userDataPa
 	}
 
 	return defaultNLSConfiguration(userLocale, osLocale, nlsMetadataPath);
+}
+
+function asTranslationPaths(translation: string | readonly string[] | undefined): string[] {
+	if (typeof translation === 'string') {
+		return [translation];
+	}
+	if (Array.isArray(translation)) {
+		return translation.filter(path => typeof path === 'string');
+	}
+	return [];
+}
+
+async function withBundledKodeLanguagePack(paths: string[], nlsMetadataPath: string, resolvedLanguage: string): Promise<string[]> {
+	if (resolvedLanguage.toLowerCase() !== 'zh-cn') {
+		return paths;
+	}
+
+	const kodeLanguagePackPath = join(nlsMetadataPath, '..', 'extensions', 'kode-language-pack-zh-hans', 'translations', 'main.i18n.json');
+	if (!paths.includes(kodeLanguagePackPath) && await Promises.exists(kodeLanguagePackPath)) {
+		return [...paths, kodeLanguagePackPath];
+	}
+
+	return paths;
+}
+
+async function allFilesExist(paths: readonly string[]): Promise<boolean> {
+	for (const path of paths) {
+		if (!(await Promises.exists(path))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+async function readLanguagePackData(paths: readonly string[]): Promise<{ contents: Record<string, Record<string, string>> }> {
+	const languagePacks = await Promise.all(
+		paths.map(path => promises.readFile(path, 'utf-8').then(content => JSON.parse(content) as { contents?: Record<string, Record<string, string>> }))
+	);
+	const result: { contents: Record<string, Record<string, string>> } = { contents: {} };
+
+	for (const languagePack of languagePacks) {
+		for (const [moduleId, moduleTranslations] of Object.entries(languagePack.contents ?? {})) {
+			result.contents[moduleId] = {
+				...result.contents[moduleId],
+				...moduleTranslations
+			};
+		}
+	}
+
+	return result;
+}
+
+async function getLanguagePackHash(baseHash: string, paths: readonly string[]): Promise<string> {
+	if (paths.length <= 1) {
+		return baseHash;
+	}
+
+	const hash = createHash('md5'); // CodeQL [SM04514] Used for cache identity, not security.
+	hash.update(baseHash);
+	for (const path of paths) {
+		hash.update(path);
+		hash.update(await promises.readFile(path, 'utf-8'));
+	}
+
+	return hash.digest('hex');
+}
+
+function toTranslationsConfig(translations: Record<string, string | readonly string[] | undefined>): Record<string, string | undefined> {
+	const result: Record<string, string | undefined> = {};
+	for (const [id, translation] of Object.entries(translations)) {
+		result[id] = Array.isArray(translation) ? translation[translation.length - 1] : translation;
+	}
+	return result;
 }
 
 /**

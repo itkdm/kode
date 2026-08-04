@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../../nls.js';
+
 export type YudaoSourceProvider = 'auto' | 'gitee' | 'github';
 export type YudaoBackendKind = 'none' | 'boot' | 'cloud';
 export type YudaoFrontendKind = 'none' | 'adminVue3' | 'adminVben' | 'mallUniapp' | 'adminVue2' | 'adminUniapp' | 'goView';
@@ -30,8 +32,8 @@ export interface IYudaoProjectPreset {
 export const yudaoBackendPresets: Record<Exclude<YudaoBackendKind, 'none'>, IYudaoProjectPreset> = {
 	boot: {
 		id: 'boot',
-		label: 'RuoYi Vue Pro / Boot monolith',
-		description: 'ruoyi-vue-pro backend for single-service deployments.',
+		label: localize('kodeYudaoPreset.backend.boot.label', 'RuoYi Vue Pro / Boot monolith'),
+		description: localize('kodeYudaoPreset.backend.boot.description', 'ruoyi-vue-pro backend for single-service deployments.'),
 		workspaceFolder: 'yudao-backend',
 		mirrors: {
 			gitee: 'https://gitee.com/zhijiantianya/ruoyi-vue-pro.git',
@@ -44,8 +46,8 @@ export const yudaoBackendPresets: Record<Exclude<YudaoBackendKind, 'none'>, IYud
 	},
 	cloud: {
 		id: 'cloud',
-		label: 'Yudao Cloud / Microservices',
-		description: 'yudao-cloud backend for Nacos-based microservice deployments.',
+		label: localize('kodeYudaoPreset.backend.cloud.label', 'Yudao Cloud / Microservices'),
+		description: localize('kodeYudaoPreset.backend.cloud.description', 'yudao-cloud backend for Nacos-based microservice deployments.'),
 		workspaceFolder: 'yudao-backend',
 		mirrors: {
 			gitee: 'https://gitee.com/zhijiantianya/yudao-cloud.git',
@@ -62,7 +64,7 @@ export const yudaoFrontendPresets: Record<Exclude<YudaoFrontendKind, 'none'>, IY
 	adminVue3: {
 		id: 'adminVue3',
 		label: 'yudao-ui-admin-vue3',
-		description: 'Vue3 + element-plus admin frontend.',
+		description: localize('kodeYudaoPreset.frontend.adminVue3.description', 'Vue3 + element-plus admin frontend.'),
 		mirrors: {
 			gitee: 'https://gitee.com/yudaocode/yudao-ui-admin-vue3.git',
 			github: 'https://github.com/yudaocode/yudao-ui-admin-vue3.git',
@@ -76,7 +78,7 @@ export const yudaoFrontendPresets: Record<Exclude<YudaoFrontendKind, 'none'>, IY
 	adminVben: {
 		id: 'adminVben',
 		label: 'yudao-ui-admin-vben',
-		description: 'Vue3 + vben + ant-design-vue admin frontend.',
+		description: localize('kodeYudaoPreset.frontend.adminVben.description', 'Vue3 + vben + ant-design-vue admin frontend.'),
 		mirrors: {
 			gitee: 'https://gitee.com/yudaocode/yudao-ui-admin-vben.git',
 			github: 'https://github.com/yudaocode/yudao-ui-admin-vben.git',
@@ -90,7 +92,7 @@ export const yudaoFrontendPresets: Record<Exclude<YudaoFrontendKind, 'none'>, IY
 	mallUniapp: {
 		id: 'mallUniapp',
 		label: 'yudao-mall-uniapp',
-		description: 'uni-app mall mini program frontend.',
+		description: localize('kodeYudaoPreset.frontend.mallUniapp.description', 'uni-app mall mini program frontend.'),
 		mirrors: {
 			gitee: 'https://gitee.com/yudaocode/yudao-mall-uniapp.git',
 			github: 'https://github.com/yudaocode/yudao-mall-uniapp.git',
@@ -104,7 +106,7 @@ export const yudaoFrontendPresets: Record<Exclude<YudaoFrontendKind, 'none'>, IY
 	adminVue2: {
 		id: 'adminVue2',
 		label: 'yudao-ui-admin-vue2',
-		description: 'Vue2 + element-ui admin frontend.',
+		description: localize('kodeYudaoPreset.frontend.adminVue2.description', 'Vue2 + element-ui admin frontend.'),
 		mirrors: {
 			gitee: 'https://gitee.com/yudaocode/yudao-ui-admin-vue2.git',
 			github: 'https://github.com/yudaocode/yudao-ui-admin-vue2.git',
@@ -118,7 +120,7 @@ export const yudaoFrontendPresets: Record<Exclude<YudaoFrontendKind, 'none'>, IY
 	adminUniapp: {
 		id: 'adminUniapp',
 		label: 'yudao-ui-admin-uniapp',
-		description: 'Vue2 + element-ui admin frontend.',
+		description: localize('kodeYudaoPreset.frontend.adminUniapp.description', 'Vue2 + element-ui admin frontend.'),
 		mirrors: {
 			gitee: 'https://gitee.com/yudaocode/yudao-ui-admin-uniapp.git',
 			github: 'https://github.com/yudaocode/yudao-ui-admin-uniapp.git',
@@ -132,7 +134,7 @@ export const yudaoFrontendPresets: Record<Exclude<YudaoFrontendKind, 'none'>, IY
 	goView: {
 		id: 'goView',
 		label: 'yudao-ui-go-view',
-		description: 'Vue3 + naive-ui dashboard and report frontend.',
+		description: localize('kodeYudaoPreset.frontend.goView.description', 'Vue3 + naive-ui dashboard and report frontend.'),
 		mirrors: {
 			gitee: 'https://gitee.com/yudaocode/yudao-ui-go-view.git',
 			github: 'https://github.com/yudaocode/yudao-ui-go-view.git',
@@ -162,21 +164,21 @@ export interface IYudaoModulePreset {
 
 // Module choices currently feed .kode/yudao-project.json metadata; they do not prune backend sources yet.
 export const yudaoModulePresets: readonly IYudaoModulePreset[] = [
-	{ id: 'yudao-module-system', label: 'System (yudao-module-system)', required: true },
-	{ id: 'yudao-module-infra', label: 'Infra (yudao-module-infra)', required: true },
-	{ id: 'yudao-module-bpm', label: 'BPM (yudao-module-bpm)' },
-	{ id: 'yudao-module-pay', label: 'Pay (yudao-module-pay)' },
-	{ id: 'yudao-module-mp', label: 'MP (yudao-module-mp)' },
-	{ id: 'yudao-module-mall', label: 'Mall (yudao-module-mall)' },
-	{ id: 'yudao-module-member', label: 'Member (yudao-module-member)' },
-	{ id: 'yudao-module-crm', label: 'CRM (yudao-module-crm)' },
-	{ id: 'yudao-module-erp', label: 'ERP (yudao-module-erp)' },
-	{ id: 'yudao-module-ai', label: 'AI (yudao-module-ai)' },
-	{ id: 'yudao-module-report', label: 'Report (yudao-module-report)' },
-	{ id: 'yudao-module-iot', label: 'IoT (yudao-module-iot)' },
-	{ id: 'yudao-module-im', label: 'IM (yudao-module-im)' },
-	{ id: 'yudao-module-mes', label: 'MES (yudao-module-mes)' },
-	{ id: 'yudao-module-wms', label: 'WMS (yudao-module-wms)' },
+	{ id: 'yudao-module-system', label: localize('kodeYudaoPreset.module.system', 'System (yudao-module-system)'), required: true },
+	{ id: 'yudao-module-infra', label: localize('kodeYudaoPreset.module.infra', 'Infra (yudao-module-infra)'), required: true },
+	{ id: 'yudao-module-bpm', label: localize('kodeYudaoPreset.module.bpm', 'BPM (yudao-module-bpm)') },
+	{ id: 'yudao-module-pay', label: localize('kodeYudaoPreset.module.pay', 'Pay (yudao-module-pay)') },
+	{ id: 'yudao-module-mp', label: localize('kodeYudaoPreset.module.mp', 'MP (yudao-module-mp)') },
+	{ id: 'yudao-module-mall', label: localize('kodeYudaoPreset.module.mall', 'Mall (yudao-module-mall)') },
+	{ id: 'yudao-module-member', label: localize('kodeYudaoPreset.module.member', 'Member (yudao-module-member)') },
+	{ id: 'yudao-module-crm', label: localize('kodeYudaoPreset.module.crm', 'CRM (yudao-module-crm)') },
+	{ id: 'yudao-module-erp', label: localize('kodeYudaoPreset.module.erp', 'ERP (yudao-module-erp)') },
+	{ id: 'yudao-module-ai', label: localize('kodeYudaoPreset.module.ai', 'AI (yudao-module-ai)') },
+	{ id: 'yudao-module-report', label: localize('kodeYudaoPreset.module.report', 'Report (yudao-module-report)') },
+	{ id: 'yudao-module-iot', label: localize('kodeYudaoPreset.module.iot', 'IoT (yudao-module-iot)') },
+	{ id: 'yudao-module-im', label: localize('kodeYudaoPreset.module.im', 'IM (yudao-module-im)') },
+	{ id: 'yudao-module-mes', label: localize('kodeYudaoPreset.module.mes', 'MES (yudao-module-mes)') },
+	{ id: 'yudao-module-wms', label: localize('kodeYudaoPreset.module.wms', 'WMS (yudao-module-wms)') },
 ] as const;
 
 export const yudaoRequiredModuleIds = yudaoModulePresets

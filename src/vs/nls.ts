@@ -238,7 +238,7 @@ export interface ILanguagePack {
 		readonly extensionIdentifier: { readonly id: string; readonly uuid?: string };
 		readonly version: string;
 	}[];
-	readonly translations: Record<string, string | undefined>;
+	readonly translations: Record<string, string | readonly string[] | undefined>;
 }
 
 export type ILanguagePacks = Record<string, ILanguagePack | undefined>;

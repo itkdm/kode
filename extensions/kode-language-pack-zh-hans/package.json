@@ -1,0 +1,29 @@
+{
+  "name": "kode-language-pack-zh-hans",
+  "displayName": "Kode Chinese (Simplified) Language Pack",
+  "description": "Simplified Chinese translations for Kode-specific UI.",
+  "version": "1.0.0",
+  "publisher": "kode",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "categories": [
+    "Language Packs"
+  ],
+  "contributes": {
+    "localizations": [
+      {
+        "languageId": "zh-cn",
+        "languageName": "Chinese Simplified",
+        "localizedLanguageName": "中文(简体)",
+        "translations": [
+          {
+            "id": "vscode",
+            "path": "./translations/main.i18n.json"
+          }
+        ]
+      }
+    ]
+  }
+}

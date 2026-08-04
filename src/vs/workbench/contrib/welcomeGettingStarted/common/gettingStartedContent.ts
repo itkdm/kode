@@ -241,13 +241,13 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 					id: 'openYudaoProject',
 					title: localize('kode.gettingStarted.yudaoStart.openProject.title', "Open a Yudao project folder"),
 					description: localize('kode.gettingStarted.yudaoStart.openProject.description.interpolated', "Open your local ruoyi-vue-pro or yudao-cloud project folder. Kode will use this folder to help with startup, troubleshooting, and secondary development.\n{0}", Button(localize('kode.gettingStarted.yudaoStart.openFolder', "Open Folder"), 'command:workbench.action.files.openFolder')),
-					media: { type: 'svg', altText: 'Open a Yudao project folder', path: 'openFolder.svg' },
+					media: { type: 'svg', altText: localize('kode.gettingStarted.yudaoStart.openProject.altText', 'Open a Yudao project folder'), path: 'openFolder.svg' },
 				},
 				{
 					id: 'prepareYudaoRuntime',
 					title: localize('kode.gettingStarted.yudaoStart.runtime.title', "Prepare the local development environment"),
 					description: localize('kode.gettingStarted.yudaoStart.runtime.description', "Make sure Java, Maven, Node.js, pnpm, MySQL, Redis, Nacos, and other dependencies are installed and available. The environment check wizard will be added in a later version."),
-					media: { type: 'svg', altText: 'Prepare local development environment', path: 'terminal.svg' },
+					media: { type: 'svg', altText: localize('kode.gettingStarted.yudaoStart.runtime.altText', 'Prepare local development environment'), path: 'terminal.svg' },
 				}
 			]
 		}
@@ -459,7 +459,7 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 					id: 'openYudaoDocs',
 					title: localize('kode.gettingStarted.yudaoDocs.official.title', "Open the official documentation"),
 					description: localize('kode.gettingStarted.yudaoDocs.official.description.interpolated', "View Yudao startup guides, environment configuration, module documentation, and FAQs.\n{0}", Button(localize('kode.gettingStarted.yudaoDocs.openDocs', "Open Yudao Docs"), 'https://doc.iocoder.cn/')),
-					media: { type: 'svg', altText: 'Yudao documentation', path: 'learn.svg' },
+					media: { type: 'svg', altText: localize('kode.gettingStarted.yudaoDocs.official.altText', 'Yudao documentation'), path: 'learn.svg' },
 				},
 			]
 		}
